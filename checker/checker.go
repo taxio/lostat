@@ -52,6 +52,5 @@ func (c *Checker) HasChanges() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
-	fmt.Println(status)
-	return status.IsClean(), nil
+	return !status.IsClean(), nil
 }
