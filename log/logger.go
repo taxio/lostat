@@ -18,10 +18,12 @@ func SetVerboseLogger(out io.Writer) {
 	logger = log.New(out, "[DEBUG] ", 0)
 }
 
+// Printf calls log.Logger.Printf()
 func Printf(format string, v ...interface{}) {
 	logger.Printf(format, v...)
 }
 
+// Println calls log.Logger.Println()
 func Println(v ...interface{}) {
 	logger.Println(v...)
 }
