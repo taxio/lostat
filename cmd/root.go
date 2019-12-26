@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/taxio/lostat/checker"
 	"os"
 	"runtime"
 
 	"github.com/spf13/cobra"
+	"github.com/taxio/lostat/checker"
 )
 
 // Root returns lostat cli root object
