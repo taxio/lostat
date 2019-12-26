@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"github.com/taxio/lostat/checker"
@@ -24,12 +25,15 @@ func Root(version string) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("%w", err)
 			}
+			wg := &sync.WaitGroup{}
 			limit := make(chan bool, nParallel)
 			for _, repoPath := range args {
 				limit <- true
+				wg.Add(1)
 				go func(p string) {
 					defer func() {
 						<-limit
+						wg.Done()
 					}()
 					chkr, err := checker.New(p)
 					if err != nil {
@@ -42,10 +46,11 @@ func Root(version string) *cobra.Command {
 						return
 					}
 					if hasChanges {
-						fmt.Println(p)
+						_, _ = fmt.Fprintln(os.Stdout, p)
 					}
 				}(repoPath)
 			}
+			wg.Wait()
 			return nil
 		},
 		SilenceErrors: true,
