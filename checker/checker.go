@@ -3,6 +3,7 @@ package checker
 import (
 	"fmt"
 
+	"github.com/taxio/lostat/log"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/gitignore"
@@ -42,15 +43,18 @@ func (c *Checker) HasChanges() (bool, error) {
 		return false, fmt.Errorf("%w", err)
 	}
 	w.Excludes = append(w.Excludes, gp...)
+	log.Printf("found %d global gitignore patterns\n", len(gp))
 	sp, err := gitignore.LoadSystemPatterns(globalFs)
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
 	w.Excludes = append(w.Excludes, sp...)
+	log.Printf("found %d system gitignore patterns\n", len(sp))
 
 	status, err := w.Status()
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
+	log.Printf("%s status:\n%v", c.path, status)
 	return !status.IsClean(), nil
 }

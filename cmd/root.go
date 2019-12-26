@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/taxio/lostat/checker"
+	"github.com/taxio/lostat/log"
 )
 
 // Root returns lostat cli root object
@@ -54,9 +55,21 @@ func Root(version string) *cobra.Command {
 			return nil
 		},
 		SilenceErrors: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			verbose, err := cmd.PersistentFlags().GetBool("verbose")
+			if err != nil {
+				return fmt.Errorf("%w", err)
+			}
+			if verbose {
+				log.SetVerboseLogger(os.Stdout)
+				log.Println("verbose on")
+			}
+			return nil
+		},
 	}
 
 	rootCmd.Flags().Int("parallel", runtime.NumCPU(), "number of worker process")
+	rootCmd.PersistentFlags().Bool("verbose", false, "print log for developer")
 
 	return rootCmd
 }
