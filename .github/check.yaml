@@ -1,0 +1,24 @@
+name: check
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v1
+      -
+        name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13.x
+      -
+        name: golint
+        run: golint -set_exit_status ./...
+      -
+        name: go vet
+        run: go vet ./...
+      -
+        name: go test
+        run: go test -race -v ./...
