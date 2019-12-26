@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/taxio/lostat/checker"
+	"os"
+	"runtime"
 
 	"github.com/spf13/cobra"
-	"github.com/taxio/lostat/checker"
 )
 
 // Root returns lostat cli root object
@@ -18,22 +20,38 @@ func Root(version string) *cobra.Command {
 			if len(args) == 0 {
 				return fmt.Errorf("repository path not specified")
 			}
+			nParallel, err := cmd.Flags().GetInt("parallel")
+			if err != nil {
+				return fmt.Errorf("%w", err)
+			}
+			limit := make(chan bool, nParallel)
 			for _, repoPath := range args {
-				chkr, err := checker.New(repoPath)
-				if err != nil {
-					return fmt.Errorf("%w", err)
-				}
-				hasChanges, err := chkr.HasChanges()
-				if err != nil {
-					return fmt.Errorf("%w", err)
-				}
-				if hasChanges {
-					fmt.Println(repoPath)
-				}
+				limit <- true
+				go func(p string) {
+					defer func() {
+						<-limit
+					}()
+					chkr, err := checker.New(p)
+					if err != nil {
+						_, _ = fmt.Fprintf(os.Stderr, "%s: %s\n", p, err.Error())
+						return
+					}
+					hasChanges, err := chkr.HasChanges()
+					if err != nil {
+						_, _ = fmt.Fprintf(os.Stderr, "%s: %s\n", p, err.Error())
+						return
+					}
+					if hasChanges {
+						fmt.Println(p)
+					}
+				}(repoPath)
 			}
 			return nil
 		},
+		SilenceErrors: true,
 	}
+
+	rootCmd.Flags().Int("parallel", runtime.NumCPU(), "number of worker process")
 
 	return rootCmd
 }
