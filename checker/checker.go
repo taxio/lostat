@@ -3,7 +3,9 @@ package checker
 import (
 	"fmt"
 
+	"gopkg.in/src-d/go-billy.v4/osfs"
 	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/format/gitignore"
 )
 
 // Checker is a repository status checker
@@ -31,9 +33,25 @@ func (c *Checker) HasChanges() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
+
+	// WORKAROUND: handle global gitignore patterns.
+	// ref: https://github.com/src-d/go-git/issues/760#issuecomment-523189734
+	globalFs := osfs.New("/")
+	gp, err := gitignore.LoadGlobalPatterns(globalFs)
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+	w.Excludes = append(w.Excludes, gp...)
+	sp, err := gitignore.LoadSystemPatterns(globalFs)
+	if err != nil {
+		return false, fmt.Errorf("%w", err)
+	}
+	w.Excludes = append(w.Excludes, sp...)
+
 	status, err := w.Status()
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
-	return len(status) != 0, nil
+	fmt.Println(status)
+	return status.IsClean(), nil
 }
