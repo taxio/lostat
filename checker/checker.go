@@ -18,7 +18,7 @@ type Checker struct {
 func New(repoPath string) (*Checker, error) {
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, fmt.Errorf("failed to open %s: %w", repoPath, err)
 	}
 
 	return &Checker{
