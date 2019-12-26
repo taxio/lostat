@@ -15,19 +15,21 @@ func Root(version string) *cobra.Command {
 		Long:    "Local repository status checker",
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			repoPath := args[0]
-			chkr, err := checker.New(repoPath)
-			if err != nil {
-				return fmt.Errorf("%w", err)
+			if len(args) == 0 {
+				return fmt.Errorf("repository path not specified")
 			}
-			hasChanges, err := chkr.HasChanges()
-			if err != nil {
-				return fmt.Errorf("%w", err)
-			}
-			if hasChanges {
-				fmt.Printf("%s has changes\n", repoPath)
-			} else {
-				fmt.Printf("%s doesn't have changes\n", repoPath)
+			for _, repoPath := range args {
+				chkr, err := checker.New(repoPath)
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				hasChanges, err := chkr.HasChanges()
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				if hasChanges {
+					fmt.Println(repoPath)
+				}
 			}
 			return nil
 		},
