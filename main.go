@@ -7,8 +7,8 @@ import (
 	"github.com/taxio/lostat/cmd"
 )
 
-const (
-	version = "v0.0.2"
+var (
+	version = "dev"
 )
 
 func main() {
